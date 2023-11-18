@@ -24,7 +24,7 @@ const LogCard = ({
     return (
         <div className=" bg-neutral-950 p-4">
             <div className=" flex justify-between">
-                <div className=" flex gap-8">
+                <div className=" flex gap-4 lg:gap-8">
                     <p className=" text-xs text-neutral-700 font-mono">resourceId <span className=" text-sm text-neutral-400">{resourceId}</span></p>
                     <p className=" text-xs text-neutral-700 font-mono">traceId <span className=" text-sm text-neutral-400">{traceId}</span></p>
                     <p className=" text-xs text-neutral-700 font-mono">spanId <span className=" text-sm text-neutral-400">{spanId}</span></p>

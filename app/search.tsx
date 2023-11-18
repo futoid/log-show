@@ -30,7 +30,7 @@ const PageNumber = ({
     const prev = "<- prev";
     const next = "next ->";
     return (
-        <div className=" flex items-center gap-10 justify-center p-5">
+        <div className=" flex items-center gap-10 justify-center lg:p-5">
             <a href="" className=" text-neutral-400">{prev}</a>
             <div className=" p-2 bg-neutral-600 rounded-lg">
                 {pageNumber}
@@ -61,7 +61,7 @@ const SearchBar = () => {
     // }
     return (
         <div>
-            <div className=" p-10 lg:p-4 lg:pt-16 lg:flex lg:items-center lg:justify-center lg:gap-10" >
+            <div className=" pt-10 px-10 lg:p-4 lg:pt-16 lg:flex lg:items-center lg:justify-center lg:gap-10" >
                 <div className="flex justify-around gap-5">
                     <input type="text" placeholder="Search Text" className=" p-3 bg-neutral-900 outline-none rounded-md lg:pr-56" />
                     <div>
