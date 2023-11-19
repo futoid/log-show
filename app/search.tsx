@@ -1,15 +1,35 @@
 'use client';
-
 import { FaSearch, FaFilter } from "react-icons/fa";
 import LogCard from "./components/logCard";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
+type logDetailsType = {
+    level: string
+    message: string
+    resourceId: string
+    timestamp: string
+    traceId: string
+    spanId: string
+    commit: string
+    metadata: {
+        parentResourceId: string
+    }
+}
 type totalResultType = {
     total: number
     totalShowed: number
 }
 
-type PageNumType = {
-    pageNumber: number
+type PageNumberType = {
+    pageNumber: number,
+    prevFunction: Function,
+    nextFunction: Function
+}
+
+type logTableType = {
+    skip: number
+    limit: number
 }
 
 const TotalResult = ({
@@ -18,39 +38,91 @@ const TotalResult = ({
 }: totalResultType) => {
     return (
         <div className=" flex justify-end p-5">
-            <p className=" font-serif"> showing <span className=" text-xl font-bold">{totalShowed}</span>  of <span className="font-bold">{total}</span> <span className=" text-neutral-300 font-serif">results</span></p>
+            <p className=" font-serif"> showing <span className=" text-xl font-bold">{totalShowed}</span>  of <span className="font-bold">{!total ? "loading.." : total}</span> <span className=" text-neutral-300 font-serif">results</span></p>
         </div>
     );
 }
 
 
 const PageNumber = ({
-    pageNumber
-}: PageNumType) => {
+    pageNumber,
+    prevFunction,
+    nextFunction
+}: PageNumberType) => {
     const prev = "<- prev";
     const next = "next ->";
     return (
         <div className=" flex items-center gap-10 justify-center lg:p-5">
-            <a href="" className=" text-neutral-400">{prev}</a>
+            <a className=" text-neutral-400 hover:cursor-pointer" onClick={() => prevFunction()}>{prev}</a>
             <div className=" p-2 bg-neutral-600 rounded-lg">
                 {pageNumber}
             </div>
-            <a href="" className=" text-neutral-400">{next}</a>
+            <a className=" text-neutral-400 hover:cursor-pointer" onClick={() => nextFunction()}>{next}</a>
         </div>
     );
 }
 
+const LogsTable = (prop: logTableType) => {
+    const [logs, setLogs] = useState([]);
+    useEffect(() => {
+        const url = `http://localhost:3000/api/v1/logs?skip=${prop.skip}&limit=${prop.limit}`;
+        axios.get(url)
+            .then((response) => {
+                setLogs(response.data.data)
+            })
+            .catch((e) => console.log(e))
+    }, [prop.skip])
+
+    return (
+        logs.map((log: logDetailsType) => {
+
+            return (
+                <>
+                    < LogCard level={log.level} message={log.message} resourceId={log.resourceId} timestamp={log.timestamp} traceId={log.traceId} spanId={log.spanId} commit={log.commit} metadata={log.metadata} />
+                </>
+            )
+        })
+    )
+}
+
 const Results = () => {
-    const metaData = {
-        "parentResourceId": "asdasfs3423"
+    const limitNumber = 4;
+    const [skip, setSkip] = useState(0)
+    const [pageNumber, setPageNumber] = useState(1);
+    const [showed, setShowed] = useState(limitNumber);
+    const [totalLogs, setTotalLogs] = useState(0);
+
+    useEffect(() => {
+        const url = `http://localhost:3000/api/v1/log/length`;
+        axios.get(url)
+            .then((response) => {
+                setTotalLogs(response.data.data)
+            })
+            .catch((e) => console.log(e))
+    }, [])
+
+    const onClickPrevButton = () => {
+        if (skip - limitNumber <= 0) {
+            setSkip(0);
+            setPageNumber(1);
+        }
+        else {
+            setSkip(prev => prev - limitNumber);
+            setPageNumber(skip / limitNumber);
+        }
+        (showed - limitNumber > 0) ? setShowed(showed - limitNumber) : setShowed(limitNumber);
+    }
+
+    const onClickNextButton = () => {
+        setSkip(prev => prev + limitNumber);
+        setPageNumber(skip / limitNumber + 2);
+        setShowed(showed + limitNumber);
     }
     return (
-        <div className=" flex flex-col px-1 lg:px-36 py-6 gap-8 bg-neutral-900">
-            <LogCard level="error" message="Failed to connect to db" resourceId="1" timestamp="24/09/2023 11:05" traceId="131kacsa" spanId="09fjao3" commit="3rn321rc" metadata={metaData} />
-            <LogCard level="error" message="Failed to connect to db" resourceId="1" timestamp="24/09/2023 11:05" traceId="131kacsa" spanId="09fjao3" commit="3rn321rc" metadata={metaData} />
-            <LogCard level="error" message="Failed to connect to db" resourceId="1" timestamp="24/09/2023 11:05" traceId="131kacsa" spanId="09fjao3" commit="3rn321rc" metadata={metaData} />
-            <LogCard level="error" message="Failed to connect to db" resourceId="1" timestamp="24/09/2023 11:05" traceId="131kacsa" spanId="09fjao3" commit="3rn321rc" metadata={metaData} />
-            <LogCard level="error" message="Failed to connect to db" resourceId="1" timestamp="24/09/2023 11:05" traceId="131kacsa" spanId="09fjao3" commit="3rn321rc" metadata={metaData} />
+        <div className="flex flex-col px-1 lg:px-36 py-6 gap-8 bg-neutral-900">
+            <TotalResult totalShowed={showed} total={totalLogs} />
+            <LogsTable limit={limitNumber} skip={skip} />
+            <PageNumber pageNumber={pageNumber} prevFunction={onClickPrevButton} nextFunction={onClickNextButton} />
         </div>
     )
 }
@@ -83,9 +155,7 @@ const SearchBar = () => {
                     </div>
                 </div>
             </div>
-            <TotalResult totalShowed={25} total={1000} />
             <Results />
-            <PageNumber pageNumber={10} />
         </div>
     );
 }
